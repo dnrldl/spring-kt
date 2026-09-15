@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: spring-kt
+
+  messages:
+    basename: messages
+    encoding: UTF-8
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/spring_kt}
+    username: ${SPRING_DATASOURCE_USERNAME:spring}
+    password: ${SPRING_DATASOURCE_PASSWORD:spring}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+  data:
+    redis:
+      url: ${SPRING_DATA_REDIS_URL:redis://localhost:6379}
+
+logging:
+  level:
+    com.springkt.global.web.HttpRequestLoggingFilter: info
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+    org.hibernate.orm.jdbc.extract: trace
+    org.hibernate.type.descriptor.jdbc.BasicBinder: trace
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+jwt:
+  secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-change-me-change-me}
+  access-token-validity-seconds: ${JWT_ACCESS_TOKEN_VALIDITY_SECONDS:3600}
+  refresh-token-validity-seconds: ${JWT_REFRESH_TOKEN_VALIDITY_SECONDS:1209600}
