@@ -16,6 +16,8 @@ data class User(
     ): Boolean =
         isActiveStatus() && matches(rawPassword, passwordHash)
 
+    fun withdraw(): User = copy(status = UserStatus.WITHDRAWN)
+
     companion object {
         fun register(
             email: String,

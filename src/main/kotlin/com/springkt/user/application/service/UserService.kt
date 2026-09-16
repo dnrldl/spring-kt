@@ -10,6 +10,7 @@ import com.springkt.user.application.usecase.RegisterUserUseCase
 import com.springkt.user.application.usecase.UpdateMyProfileCommand
 import com.springkt.user.application.usecase.UpdateMyProfileResult
 import com.springkt.user.application.usecase.UpdateMyProfileUseCase
+import com.springkt.user.application.usecase.WithdrawUserUseCase
 import com.springkt.user.application.usecase.toGetMyProfileResult
 import com.springkt.user.domain.model.User
 import com.springkt.user.domain.model.UserProfile
@@ -28,7 +29,10 @@ class UserService(
     private val userQueryRepository: UserQueryRepository,
     private val userValidator: UserValidator,
     private val passwordEncoder: PasswordEncoder,
-) : RegisterUserUseCase, GetMyProfileUseCase, UpdateMyProfileUseCase {
+) : RegisterUserUseCase,
+    GetMyProfileUseCase,
+    UpdateMyProfileUseCase,
+    WithdrawUserUseCase {
 
     @Transactional(readOnly = true)
     override fun getMyProfile(userId: Long): GetMyProfileResult {
@@ -84,6 +88,15 @@ class UserService(
         val savedUserProfile = userProfileRepository.save(updatedUserProfile)
 
         return savedUserProfile.toResult(user)
+    }
+
+    @Transactional
+    override fun withdraw(userId: Long) {
+        val user = userRepository.findById(userId)
+            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+
+        val withdrawnUser = user.withdraw()
+        userRepository.save(withdrawnUser)
     }
 
     private fun User.toResult(userProfile: UserProfile): RegisterUserResult = RegisterUserResult(
