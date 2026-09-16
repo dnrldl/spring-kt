@@ -4,7 +4,6 @@ data class User(
     val id: Long?,
     val email: String,
     val passwordHash: String,
-    val nickname: String,
     val role: UserRole,
     val status: UserStatus,
     val profile: UserProfile?
@@ -17,17 +16,14 @@ data class User(
     ): Boolean =
         isActiveStatus() && matches(rawPassword, passwordHash)
 
-
     companion object {
         fun register(
             email: String,
             passwordHash: String,
-            nickname: String,
         ): User = User(
             id = null,
             email = email.trim().lowercase(),
             passwordHash = passwordHash,
-            nickname = nickname.trim(),
             role = UserRole.USER,
             status = UserStatus.ACTIVE,
             profile = null
@@ -37,7 +33,6 @@ data class User(
             id: Long?,
             email: String,
             passwordHash: String,
-            nickname: String,
             role: UserRole,
             status: UserStatus,
             profile: UserProfile? = null
@@ -45,7 +40,6 @@ data class User(
             id = id,
             email = email,
             passwordHash = passwordHash,
-            nickname = nickname,
             role = role,
             status = status,
             profile = profile

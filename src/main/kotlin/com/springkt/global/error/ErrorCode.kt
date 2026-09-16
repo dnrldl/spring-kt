@@ -13,4 +13,5 @@ enum class ErrorCode(
     DPOP_PROOF_REQUIRED(HttpStatus.UNAUTHORIZED, "error.dpop-proof-required"),
     INVALID_DPOP_PROOF(HttpStatus.UNAUTHORIZED, "error.invalid-dpop-proof"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "error.user-not-found"),
+    USER_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "error.user-profile-not-found"),
 }

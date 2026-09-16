@@ -26,9 +26,6 @@ class UserJpaEntity(
     @Column(nullable = false)
     var passwordHash: String = "",
 
-    @Column(nullable = false, unique = true)
-    var nickname: String = "",
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var role: UserRole = UserRole.USER,
@@ -41,7 +38,6 @@ class UserJpaEntity(
         id = id,
         email = email,
         passwordHash = passwordHash,
-        nickname = nickname,
         role = role,
         status = status,
     )
@@ -51,7 +47,6 @@ class UserJpaEntity(
             id = user.id,
             email = user.email,
             passwordHash = user.passwordHash,
-            nickname = user.nickname,
             role = user.role,
             status = user.status,
         )

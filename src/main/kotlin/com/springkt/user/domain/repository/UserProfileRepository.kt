@@ -8,4 +8,6 @@ interface UserProfileRepository {
     fun findByUserId(userId: Long): UserProfile?
 
     fun existsByNickname(nickname: String): Boolean
+
+    fun existsByNicknameAndUserIdNot(nickname: String, userId: Long): Boolean
 }

@@ -7,13 +7,16 @@ import com.springkt.user.application.usecase.GetMyProfileUseCase
 import com.springkt.user.application.usecase.RegisterUserCommand
 import com.springkt.user.application.usecase.RegisterUserResult
 import com.springkt.user.application.usecase.RegisterUserUseCase
+import com.springkt.user.application.usecase.UpdateMyProfileCommand
+import com.springkt.user.application.usecase.UpdateMyProfileResult
+import com.springkt.user.application.usecase.UpdateMyProfileUseCase
 import com.springkt.user.application.usecase.toGetMyProfileResult
 import com.springkt.user.domain.model.User
 import com.springkt.user.domain.model.UserProfile
 import com.springkt.user.domain.repository.UserProfileRepository
 import com.springkt.user.domain.repository.UserQueryRepository
 import com.springkt.user.domain.repository.UserRepository
-import com.springkt.user.domain.service.UserRegistrationValidator
+import com.springkt.user.domain.service.UserValidator
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,13 +26,20 @@ class UserService(
     private val userRepository: UserRepository,
     private val userProfileRepository: UserProfileRepository,
     private val userQueryRepository: UserQueryRepository,
-    private val userRegistrationValidator: UserRegistrationValidator,
+    private val userValidator: UserValidator,
     private val passwordEncoder: PasswordEncoder,
-) : RegisterUserUseCase, GetMyProfileUseCase {
+) : RegisterUserUseCase, GetMyProfileUseCase, UpdateMyProfileUseCase {
+
+    @Transactional(readOnly = true)
+    override fun getMyProfile(userId: Long): GetMyProfileResult {
+        val result = (userQueryRepository.findProfileViewById(userId)?.toGetMyProfileResult()
+            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND))
+        return result
+    }
 
     @Transactional
     override fun register(command: RegisterUserCommand): RegisterUserResult {
-        userRegistrationValidator.validate(
+        userValidator.register(
             email = command.email,
             nickname = command.nickname,
         )
@@ -41,12 +51,11 @@ class UserService(
             User.register(
                 email = command.email,
                 passwordHash = passwordHash,
-                nickname = command.nickname,
             )
         )
 
-        userProfileRepository.save(
-            UserProfile.create(
+        val saveUserProfile = userProfileRepository.save(
+            UserProfile.register(
                 userId = requireNotNull(saveUser.id),
                 nickname = command.nickname,
                 bio = command.bio,
@@ -54,20 +63,44 @@ class UserService(
             )
         )
 
-        return saveUser.toRegisterUserResult()
+        return saveUser.toResult(saveUserProfile)
     }
 
-    @Transactional(readOnly = true)
-    override fun getMyProfile(userId: Long): GetMyProfileResult {
-        val result = (userQueryRepository.findProfileViewById(userId)?.toGetMyProfileResult()
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND))
-        return result
+    @Transactional
+    override fun updateMyProfile(command: UpdateMyProfileCommand): UpdateMyProfileResult {
+        val user = userRepository.findById(command.userId)
+            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
+        val userProfile = userProfileRepository.findByUserId(command.userId)
+            ?: throw BusinessException(ErrorCode.USER_PROFILE_NOT_FOUND)
+
+        userValidator.updateMyProfile(command.userId, command.nickname)
+
+        val updatedUserProfile = userProfile.update(
+            nickname = command.nickname,
+            bio = command.bio,
+            profileImageUrl = command.profileImageUrl,
+        )
+
+        val savedUserProfile = userProfileRepository.save(updatedUserProfile)
+
+        return savedUserProfile.toResult(user)
     }
 
-    private fun User.toRegisterUserResult(): RegisterUserResult = RegisterUserResult(
+    private fun User.toResult(userProfile: UserProfile): RegisterUserResult = RegisterUserResult(
         id = requireNotNull(id),
         email = email,
-        nickname = nickname,
+        nickname = userProfile.nickname,
     )
+
+    private fun UserProfile.toResult(user: User): UpdateMyProfileResult =
+        UpdateMyProfileResult(
+            id = userId,
+            email = user.email,
+            nickname = nickname,
+            role = user.role,
+            status = user.status,
+            bio = bio,
+            profileImageUrl = profileImageUrl,
+        )
 
 }

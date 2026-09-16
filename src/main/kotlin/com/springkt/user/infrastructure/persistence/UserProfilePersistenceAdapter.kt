@@ -31,4 +31,8 @@ class UserProfilePersistenceAdapter(
     override fun existsByNickname(nickname: String): Boolean {
         return springDataUserProfileJpaRepository.existsByNickname(nickname.trim())
     }
+
+    override fun existsByNicknameAndUserIdNot(nickname: String, userId: Long): Boolean {
+        return springDataUserProfileJpaRepository.existsByNicknameAndUserIdNot(nickname.trim(), userId)
+    }
 }

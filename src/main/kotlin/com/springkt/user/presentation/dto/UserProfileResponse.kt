@@ -1,6 +1,7 @@
 package com.springkt.user.presentation.dto
 
 import com.springkt.user.application.usecase.GetMyProfileResult
+import com.springkt.user.application.usecase.UpdateMyProfileResult
 
 data class UserProfileResponse(
     val id: Long,
@@ -13,6 +14,16 @@ data class UserProfileResponse(
 ) {
     companion object {
         fun from(result: GetMyProfileResult): UserProfileResponse = UserProfileResponse(
+            id = result.id,
+            email = result.email,
+            nickname = result.nickname,
+            role = result.role.name,
+            status = result.status.name,
+            bio = result.bio,
+            profileImageUrl = result.profileImageUrl,
+        )
+
+        fun from(result: UpdateMyProfileResult): UserProfileResponse = UserProfileResponse(
             id = result.id,
             email = result.email,
             nickname = result.nickname,

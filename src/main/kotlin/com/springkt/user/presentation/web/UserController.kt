@@ -4,7 +4,9 @@ import com.springkt.global.security.JwtPrincipal
 import com.springkt.global.web.SuccessResponse
 import com.springkt.user.application.usecase.GetMyProfileUseCase
 import com.springkt.user.application.usecase.RegisterUserUseCase
+import com.springkt.user.application.usecase.UpdateMyProfileUseCase
 import com.springkt.user.presentation.dto.RegisterUserRequest
+import com.springkt.user.presentation.dto.UpdateMyProfileRequest
 import com.springkt.user.presentation.dto.UserProfileResponse
 import com.springkt.user.presentation.dto.UserResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 class UserController(
     private val registerUserUseCase: RegisterUserUseCase,
     private val getMyProfileUseCase: GetMyProfileUseCase,
+    private val updateMyProfileUseCase: UpdateMyProfileUseCase,
 ) {
     @PostMapping
     @Operation(summary = "회원가입", description = "일반 유저를 생성합니다.")
@@ -49,6 +53,24 @@ class UserController(
         @AuthenticationPrincipal principal: JwtPrincipal,
     ): SuccessResponse<UserProfileResponse> {
         val result = getMyProfileUseCase.getMyProfile(principal.userId)
+        return SuccessResponse.ok(UserProfileResponse.from(result))
+    }
+
+    @PatchMapping("/me")
+    @Operation(
+        summary = "내 정보 수정",
+        description = "DPoP access token으로 현재 로그인한 유저 정보를 수정합니다.",
+        security = [
+            SecurityRequirement(name = "dpopAuth"),
+            SecurityRequirement(name = "dpopProof"),
+        ],
+    )
+    fun updateMyProfile(
+        @Parameter(hidden = true)
+        @AuthenticationPrincipal principal: JwtPrincipal,
+        @Valid @RequestBody request: UpdateMyProfileRequest
+    ): SuccessResponse<UserProfileResponse> {
+        val result = updateMyProfileUseCase.updateMyProfile(request.toCommand(principal.userId))
         return SuccessResponse.ok(UserProfileResponse.from(result))
     }
 }

@@ -32,7 +32,7 @@ class UserQuerydslRepository(
                     UserProfileView::class.java,
                     userJpaEntity.id,
                     userJpaEntity.email,
-                    userJpaEntity.nickname,
+                    userProfileJpaEntity.nickname,
                     userJpaEntity.role,
                     userJpaEntity.status,
                     userProfileJpaEntity.bio,

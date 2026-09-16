@@ -6,8 +6,18 @@ data class UserProfile(
     val bio: String?,
     val profileImageUrl: String?,
 ) {
+    fun update(
+        nickname: String?,
+        bio: String?,
+        profileImageUrl: String?,
+    ): UserProfile = copy(
+        nickname = nickname?.trim()?.takeIf { it.isNotBlank() } ?: this.nickname,
+        bio = bio?.trim()?.takeIf { it.isNotBlank() } ?: this.bio,
+        profileImageUrl = profileImageUrl?.trim()?.takeIf { it.isNotBlank() } ?: this.profileImageUrl,
+    )
+
     companion object {
-        fun create(
+        fun register(
             userId: Long,
             nickname: String,
             bio: String? = null,

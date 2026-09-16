@@ -4,4 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface SpringDataUserProfileJpaRepository : JpaRepository<UserProfileJpaEntity, Long> {
     fun existsByNickname(nickname: String): Boolean
+
+    fun existsByNicknameAndUserIdNot(nickname: String, userId: Long): Boolean
 }
