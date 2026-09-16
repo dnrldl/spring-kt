@@ -1,8 +1,10 @@
 package com.springkt.global.security
 
+import com.springkt.user.domain.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -11,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val dpopProofValidator: DpopProofValidator,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -23,11 +26,19 @@ class JwtAuthenticationFilter(
 
         if (token != null && proof != null && SecurityContextHolder.getContext().authentication == null) {
             if (jwtTokenProvider.validate(token) && validateDpopProof(request, proof, token)) {
-                SecurityContextHolder.getContext().authentication = jwtTokenProvider.getAuthentication(token)
+                val authentication = jwtTokenProvider.getAuthentication(token)
+                if (isActiveUser(authentication)) {
+                    SecurityContextHolder.getContext().authentication = authentication
+                }
             }
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    private fun isActiveUser(authentication: Authentication): Boolean {
+        val principal = authentication.principal as? JwtPrincipal ?: return false
+        return userRepository.findById(principal.userId)?.isActiveStatus() == true
     }
 
     private fun resolveDpopAccessToken(request: HttpServletRequest): String? {

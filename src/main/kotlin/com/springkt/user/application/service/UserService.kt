@@ -1,5 +1,6 @@
 package com.springkt.user.application.service
 
+import com.springkt.auth.domain.repository.RefreshTokenRepository
 import com.springkt.global.error.BusinessException
 import com.springkt.global.error.ErrorCode
 import com.springkt.user.application.usecase.GetMyProfileResult
@@ -28,6 +29,7 @@ class UserService(
     private val userProfileRepository: UserProfileRepository,
     private val userQueryRepository: UserQueryRepository,
     private val userValidator: UserValidator,
+    private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
 ) : RegisterUserUseCase,
     GetMyProfileUseCase,
@@ -97,6 +99,7 @@ class UserService(
 
         val withdrawnUser = user.withdraw()
         userRepository.save(withdrawnUser)
+        refreshTokenRepository.deleteByUserId(userId)
     }
 
     private fun User.toResult(userProfile: UserProfile): RegisterUserResult = RegisterUserResult(
