@@ -16,7 +16,11 @@ data class User(
     ): Boolean =
         isActiveStatus() && matches(rawPassword, passwordHash)
 
-    fun active(): User = copy(status = UserStatus.ACTIVE)
+    fun reactivate(passwordHash: String): User = copy(
+        passwordHash = passwordHash,
+        status = UserStatus.ACTIVE,
+    )
+
     fun withdraw(): User = copy(status = UserStatus.WITHDRAWN)
 
     companion object {

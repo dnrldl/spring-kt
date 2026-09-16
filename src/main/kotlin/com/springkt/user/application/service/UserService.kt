@@ -38,21 +38,49 @@ class UserService(
 
     @Transactional(readOnly = true)
     override fun getMyProfile(userId: Long): GetMyProfileResult {
-        val result = (userQueryRepository.findProfileViewById(userId)?.toGetMyProfileResult()
-            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND))
+        val result = userQueryRepository.findProfileViewById(userId)?.toGetMyProfileResult()
+            ?: throw BusinessException(ErrorCode.USER_NOT_FOUND)
         return result
     }
 
     @Transactional
     override fun register(command: RegisterUserCommand): RegisterUserResult {
-        userValidator.register(
-            email = command.email,
-            nickname = command.nickname,
-        )
+        val existingUser = userRepository.findByEmail(command.email)
+
+        if (existingUser == null) {
+            userValidator.register(
+                email = command.email,
+                nickname = command.nickname,
+            )
+        } else {
+            userValidator.reactivate(
+                user = existingUser,
+                nickname = command.nickname,
+            )
+        }
+
         val passwordHash = requireNotNull(passwordEncoder.encode(command.password)) {
             "비밀번호 암호화 결과가 비어있습니다."
         }
 
+        return if (existingUser == null) {
+            registerNewUser(
+                command = command,
+                passwordHash = passwordHash,
+            )
+        } else {
+            reactivateUser(
+                user = existingUser,
+                command = command,
+                passwordHash = passwordHash,
+            )
+        }
+    }
+
+    private fun registerNewUser(
+        command: RegisterUserCommand,
+        passwordHash: String,
+    ): RegisterUserResult {
         val saveUser = userRepository.save(
             User.register(
                 email = command.email,
@@ -70,6 +98,30 @@ class UserService(
         )
 
         return saveUser.toResult(saveUserProfile)
+    }
+
+    private fun reactivateUser(
+        user: User,
+        command: RegisterUserCommand,
+        passwordHash: String,
+    ): RegisterUserResult {
+        val userId = requireNotNull(user.id)
+        val savedUser = userRepository.save(user.reactivate(passwordHash))
+        val userProfile = userProfileRepository.findByUserId(userId)
+        val savedUserProfile = userProfileRepository.save(
+            userProfile?.update(
+                nickname = command.nickname,
+                bio = command.bio,
+                profileImageUrl = command.profileImageUrl,
+            ) ?: UserProfile.register(
+                userId = userId,
+                nickname = command.nickname,
+                bio = command.bio,
+                profileImageUrl = command.profileImageUrl,
+            )
+        )
+
+        return savedUser.toResult(savedUserProfile)
     }
 
     @Transactional
