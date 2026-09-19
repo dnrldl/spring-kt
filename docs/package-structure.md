@@ -23,7 +23,21 @@ com.springkt
 │   └── presentation
 │       ├── dto
 │       └── web
-└── auth
+├── auth
+│   ├── domain
+│   │   ├── model
+│   │   ├── repository
+│   │   └── service
+│   ├── application
+│   │   ├── service
+│   │   └── usecase
+│   ├── infrastructure
+│   │   ├── persistence
+│   │   └── redis
+│   └── presentation
+│       ├── dto
+│       └── web
+└── todo
     ├── domain
     │   ├── model
     │   ├── repository
@@ -33,7 +47,7 @@ com.springkt
     │   └── usecase
     ├── infrastructure
     │   ├── persistence
-    │   └── redis
+    │   └── querydsl
     └── presentation
         ├── dto
         └── web
@@ -54,4 +68,5 @@ com.springkt
 
 - `user` owns user identity, profile, role, and account status.
 - `auth` owns login, token issuing, refresh token storage, and logout/session policies.
+- `todo` owns todo lifecycle, completion state, and user-scoped todo queries.
 - `auth` may read user information through a user-facing application use case or domain contract, but it should not directly own user lifecycle rules.
