@@ -1,6 +1,6 @@
 package com.springkt.user.presentation.web
 
-import com.springkt.global.security.JwtPrincipal
+import com.springkt.global.security.CurrentUserId
 import com.springkt.global.web.SuccessResponse
 import com.springkt.user.application.usecase.GetMyProfileUseCase
 import com.springkt.user.application.usecase.RegisterUserUseCase
@@ -11,12 +11,10 @@ import com.springkt.user.presentation.dto.UpdateMyProfileRequest
 import com.springkt.user.presentation.dto.UserProfileResponse
 import com.springkt.user.presentation.dto.UserResponse
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -54,10 +52,9 @@ class UserController(
         ],
     )
     fun getMyProfile(
-        @Parameter(hidden = true)
-        @AuthenticationPrincipal principal: JwtPrincipal,
+        @CurrentUserId userId: Long,
     ): SuccessResponse<UserProfileResponse> {
-        val result = getMyProfileUseCase.getMyProfile(principal.userId)
+        val result = getMyProfileUseCase.getMyProfile(userId)
         return SuccessResponse.ok(UserProfileResponse.from(result))
     }
 
@@ -71,11 +68,10 @@ class UserController(
         ],
     )
     fun updateMyProfile(
-        @Parameter(hidden = true)
-        @AuthenticationPrincipal principal: JwtPrincipal,
+        @CurrentUserId userId: Long,
         @Valid @RequestBody request: UpdateMyProfileRequest
     ): SuccessResponse<UserProfileResponse> {
-        val result = updateMyProfileUseCase.updateMyProfile(request.toCommand(principal.userId))
+        val result = updateMyProfileUseCase.updateMyProfile(request.toCommand(userId))
         return SuccessResponse.ok(UserProfileResponse.from(result))
     }
 
@@ -90,9 +86,8 @@ class UserController(
         ],
     )
     fun withdraw(
-        @Parameter(hidden = true)
-        @AuthenticationPrincipal principal: JwtPrincipal,
+        @CurrentUserId userId: Long,
     ) {
-        withdrawUserUseCase.withdraw(principal.userId)
+        withdrawUserUseCase.withdraw(userId)
     }
 }
